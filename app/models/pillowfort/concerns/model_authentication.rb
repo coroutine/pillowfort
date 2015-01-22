@@ -1,3 +1,5 @@
+require 'bcrypt'
+
 module Pillowfort
   module Concerns::ModelAuthentication
     extend ActiveSupport::Concern
