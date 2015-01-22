@@ -12,8 +12,9 @@ The controller concern also deletes the `WWW-Authenticate` header from the respo
 
 Lastly, by default, we setup the `before_filter` that authenticates each request to the API, when the controller concern is included into a controller.  You will likely want to skip this filter in you login controller.  This is how we do it:
 
-    skip_filter :authenticate_from_account_token!, only: [:create]
-
+```ruby
+skip_filter :authenticate_from_account_token!, only: [:create]
+```
 
 ### Model Authentication Concerns
 
@@ -22,4 +23,84 @@ The model concern provides token management logic.  This includes, token resets,
 This concern also provides a couple of class methods for checking the authenticity of a user's credentials:
 
 - `authenticate_securely(email, token)` performs safe token authentication
-- `find_and_authenticate` performs the initial password authentication, and returns the user, if authentication is successful.
+- `find_and_authenticate(email, password)` performs the initial password authentication, and returns the user, if authentication is successful.
+
+#### Model Assumptions
+
+Again, Pillowfort is opinionated, and in its opinion, you need the following fields defined on your model:
+
+```ruby
+t.string   "email",                 null: false
+t.string   "encrypted_password",    null: false
+t.string   "auth_token"
+t.datetime "auth_token_expires_at"
+```
+
+## Examples
+
+### An Authentication Controller
+
+This is an example of how you might want to let user's login and logout:
+
+```ruby
+class Api::V1::AuthenticationsController < Api::ApplicationController
+  skip_filter :authenticate_from_account_token!, only: [:create]
+
+  def create
+    @user = User.find_and_authenticate(
+      authentication_params[:email],
+      authentication_params[:password]
+    )
+
+    head :unauthorized unless @user
+    # otherwise, render `create.json.jbuilder`.
+  end
+
+  def destroy
+    current_user.reset_auth_token!
+    head :ok
+  end
+
+  private
+
+  def authentication_params
+    params.permit(:email, :password)
+  end
+end
+```
+
+### The ApplicationController
+
+To enable Pillowfort authentication, just include it in the appropriate controller:
+
+```ruby
+class ApplicationController < ActionController::API
+  include ActionController::MimeResponds
+  include ActionController::ImplicitRender
+  include Pillowfort::Concerns::ControllerAuthentication
+
+  # ...
+end
+```
+
+### The User Model (_...or whatever handles the auth record_)
+
+```ruby
+# == Schema Information
+#
+# Table name: users
+#
+#  id                    :integer          not null, primary key
+#  email                 :string(255)      not null
+#  encrypted_password    :string(255)      not null
+#  auth_token            :string(255)
+#  auth_token_expires_at :datetime
+#  created_at            :datetime
+#  updated_at            :datetime
+#
+
+class User < ActiveRecord::Base
+  include Pillowfort::Concerns::ModelAuthentication
+  validates :email, presence: true, uniqueness: true
+end
+```
