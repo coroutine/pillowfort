@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.version     = Pillowfort::VERSION
   s.authors     = ["Tim Lowrimore"]
   s.email       = ["tlowrimore@coroutine.com"]
-  s.homepage    = "github.com/coroutine/pillowfort"
+  s.homepage    = "https://github.com/coroutine/pillowfort"
   s.summary     = "Opinionated, session-less API authentication"
   s.description = "Opinionated, session-less API authentication"
   s.license     = "MIT"
