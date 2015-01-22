@@ -18,7 +18,7 @@ skip_filter :authenticate_from_account_token!, only: [:create]
 
 ### Model Authentication Concerns
 
-The model concern provides token management logic.  This includes, token resets, token timeouts and password encryption.
+The model concern provides the core authentication logic.  This includes, token resets, token timeouts and password encryption.
 
 This concern also provides a couple of class methods for checking the authenticity of a user's credentials:
 
@@ -53,7 +53,8 @@ class Api::V1::AuthenticationsController < Api::ApplicationController
     )
 
     head :unauthorized unless @user
-    # otherwise, render `create.json.jbuilder`.
+    # otherwise, render `create.json.jbuilder`
+    # containing the auth_token.
   end
 
   def destroy
