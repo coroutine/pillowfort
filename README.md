@@ -104,3 +104,11 @@ class User < ActiveRecord::Base
   validates :email, presence: true, uniqueness: true
 end
 ```
+
+## Usage
+
+Just add Pillowfort to your `Gemfile`, and include the concerns where appropriate (_see the examples above_).
+
+```ruby
+gem 'pillowfort', git: 'https://github.com/coroutine/pillowfort.git'
+```
