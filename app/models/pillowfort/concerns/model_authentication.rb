@@ -77,6 +77,18 @@ module Pillowfort
         end
       end
 
+      def find_and_authenticate(email, password)
+        user = find_by_email(email)
+
+        if user && user.password == password
+          user.tap do |u|
+            u.reset_auth_token!
+          end
+        else
+          return false
+        end
+      end
+
       # constant-time comparison algorithm to prevent timing attacks.  Lifted
       # from Devise.
       def secure_compare(a, b)
