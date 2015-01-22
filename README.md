@@ -4,6 +4,8 @@ Pillowfort is a very opinionated, no bullshit, session-less authentication engin
 
 Pillowfort is nothing more that a couple of concerns, bundled up for distribution and reuse.  Here's the break down:
 
+![Pillowfort](docs/assets/pillowfort.gif)
+
 ### Controller Authentication Concerns
 
 The controller concern provides http basic authentication and access to a `current_user`, assuming authentication was successful.  In the event authentication fails, the concern simply returns a 401 response.
