@@ -8,7 +8,7 @@ Pillowfort is nothing more that a couple of concerns, bundled up for distributio
 
 ### Controller Authentication Concerns
 
-The controller concern provides http basic authentication and access to a `current_user`, assuming authentication was successful.  In the event authentication fails, the concern simply returns a 401 response.
+The controller concern provides http basic authentication and access to a `current_#{model.class.name.underscore}`, assuming authentication was successful.  In the event authentication fails, the concern simply returns a 401 response.
 
 The controller concern also deletes the `WWW-Authenticate` header from the response.  Why the fuck would we do that?!  Here's why: if you're using something like Apache Cordova to build something like an iOS app that needs to authenticate against something like your API, this header is the bane of your existence.  You see, iOS will see the `WWW-Authenticate` header, do whatever the fuck it does with it and not pass it forward.  This means, there's no good way to handle the 401 response in your app, and do something smart, like redirecting the user to the login screen.
 
@@ -19,6 +19,13 @@ skip_filter :authenticate_from_account_token!, only: [:create]
 ```
 
 ### Model Authentication Concerns
+
+<div style='border: 1px solid #FFCDD2; border-radius: 3px; background: #FFEBEE; padding: 0 10px; color: #B71C1C;'>
+<h3>Note!</h3>
+<p>
+Pillowfort requires `config.eager_load = true` in your development and test environments, as we need the authorization model to be loaded when the application loads.
+</p>
+</div>
 
 The model concern provides the core authentication logic.  This includes, token resets, token timeouts and password encryption.
 

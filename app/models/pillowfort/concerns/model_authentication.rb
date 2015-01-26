@@ -1,4 +1,5 @@
 require 'bcrypt'
+require 'pillowfort/model_context'
 
 module Pillowfort
   module Concerns::ModelAuthentication
@@ -6,6 +7,7 @@ module Pillowfort
     include BCrypt
 
     included do
+      Pillowfort::ModelContext.model_class = self
 
       before_save :ensure_auth_token
 
@@ -56,21 +58,21 @@ module Pillowfort
         return false if email.blank? || token.blank?
 
         transaction do
-          user = find_by_email(email)
-          if user
+          resource = find_by_email(email)
+          if resource
 
-            # if the user token is expired, reset it and
+            # if the resource token is expired, reset it and
             # return false, triggering a 401
-            if user.token_expired?
-              user.reset_auth_token!
+            if resource.token_expired?
+              resource.reset_auth_token!
               return false
             else
-              if secure_compare(user.auth_token, token)
+              if secure_compare(resource.auth_token, token)
 
-                # If the user successfully authenticates within the alotted window
+                # If the resource successfully authenticates within the alotted window
                 # of time, we'll extend the window.
-                user.send :touch_token_expiry!
-                yield user
+                resource.send :touch_token_expiry!
+                yield resource
               end
             end
           end
@@ -78,10 +80,10 @@ module Pillowfort
       end
 
       def find_and_authenticate(email, password)
-        user = find_by_email(email)
+        resource = find_by_email(email)
 
-        if user && user.password == password
-          user.tap do |u|
+        if resource && resource.password == password
+          resource.tap do |u|
             u.reset_auth_token!
           end
         else
