@@ -20,12 +20,13 @@ skip_filter :authenticate_from_account_token!, only: [:create]
 
 ### Model Authentication Concerns
 
-<div style='border: 1px solid #FFCDD2; border-radius: 3px; background: #FFEBEE; padding: 0 10px; color: #B71C1C;'>
-<h3>Note!</h3>
-<p>
-Pillowfort requires `config.eager_load = true` in your development and test environments, as we need the authorization model to be loaded when the application loads.
-</p>
-</div>
+<hr/>
+
+><h3>Notice!</h3>
+  <p>
+  Pillowfort requires `config.eager_load = true` in your development and test environments, as we need the authorization model to be loaded when the application loads.
+
+<hr/>
 
 The model concern provides the core authentication logic.  This includes, token resets, token timeouts and password encryption.
 
