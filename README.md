@@ -1,6 +1,6 @@
 # Pillowfort
 
-Pillowfort is a very opinionated, no bullshit, session-less authentication engine for APIs.  If you want a lot of configurability, get the fuck out.  If you want lightweight, zero-config authentication for your API, you've come to the right place.
+Pillowfort is a very opinionated, no bullshit, session-less authentication engine for Rails 4 APIs.  If you want a lot of configurability, get the fuck out.  If you want lightweight, zero-config authentication for your API, you've come to the right place.
 
 Pillowfort is nothing more that a couple of concerns, bundled up for distribution and reuse.  Here's the break down:
 
