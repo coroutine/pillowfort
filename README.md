@@ -41,7 +41,7 @@ Again, Pillowfort is opinionated, and in its opinion, you need the following fie
 
 ```ruby
 t.string   "email",                 null: false
-t.string   "encrypted_password",    null: false
+t.string   "password_digest",       null: false
 t.string   "auth_token"
 t.datetime "auth_token_expires_at"
 ```
@@ -103,7 +103,7 @@ end
 #
 #  id                    :integer          not null, primary key
 #  email                 :string(255)      not null
-#  encrypted_password    :string(255)      not null
+#  password_digest       :string(255)      not null
 #  auth_token            :string(255)
 #  auth_token_expires_at :datetime
 #  created_at            :datetime
