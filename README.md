@@ -2,7 +2,7 @@
 
 Pillowfort is a very opinionated, no bullshit, session-less authentication engine for Rails 4 APIs.  If you want a lot of configurability, get the fuck out.  If you want lightweight, zero-config authentication for your API, you've come to the right place.
 
-Pillowfort is nothing more that a couple of concerns, bundled up for distribution and reuse.  Here's the break down:
+Pillowfort is nothing more than a couple of concerns, bundled up for distribution and reuse.  Here's the break down:
 
 ![Pillowfort](docs/assets/pillowfort.gif)
 
@@ -86,8 +86,6 @@ To enable Pillowfort authentication, just include it in the appropriate controll
 
 ```ruby
 class ApplicationController < ActionController::API
-  include ActionController::MimeResponds
-  include ActionController::ImplicitRender
   include Pillowfort::Concerns::ControllerAuthentication
 
   # ...
@@ -112,7 +110,6 @@ end
 
 class User < ActiveRecord::Base
   include Pillowfort::Concerns::ModelAuthentication
-  validates :email, presence: true, uniqueness: true
 end
 ```
 
@@ -121,5 +118,5 @@ end
 Just add Pillowfort to your `Gemfile`, and include the concerns where appropriate (_see the examples above_).
 
 ```ruby
-gem 'pillowfort', git: 'https://github.com/coroutine/pillowfort.git'
+gem 'pillowfort'
 ```
