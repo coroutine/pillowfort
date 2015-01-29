@@ -6,8 +6,16 @@ module Pillowfort
     extend ActiveSupport::Concern
     include BCrypt
 
+    MIN_PASSWORD_LENGTH = 8
+
     included do
       Pillowfort::ModelContext.model_class = self
+
+      # Provided by Rails
+      has_secure_password
+
+      validates :email, presence: true, uniqueness: true
+      validates :password, length: { minimum: MIN_PASSWORD_LENGTH }
 
       before_save :ensure_auth_token
 
@@ -27,15 +35,6 @@ module Pillowfort
 
       def token_expired?
         auth_token_expires_at <= Time.now
-      end
-
-      def password
-        @password ||= Password.new encrypted_password
-      end
-
-      def password=(password)
-        @password = Password.create password
-        self.encrypted_password = @password
       end
 
       private
@@ -59,6 +58,7 @@ module Pillowfort
 
         transaction do
           resource = find_by_email(email)
+
           if resource
 
             # if the resource token is expired, reset it and
@@ -82,7 +82,7 @@ module Pillowfort
       def find_and_authenticate(email, password)
         resource = find_by_email(email)
 
-        if resource && resource.password == password
+        if resource && resource.authenticate(password)
           resource.tap do |u|
             u.reset_auth_token!
           end
