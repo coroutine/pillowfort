@@ -1,5 +1,7 @@
 .bundle/
 log/*.log
+spec/dummy/log/*.log
+
 pkg/
 
 .DS_Store
