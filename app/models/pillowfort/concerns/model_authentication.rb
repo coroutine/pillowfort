@@ -57,7 +57,7 @@ module Pillowfort
         return false if email.blank? || token.blank?
 
         transaction do
-          resource = find_by_email(email)
+          resource = find_by_email_case_insensitive(email)
 
           if resource
 
@@ -80,8 +80,8 @@ module Pillowfort
       end
 
       def find_and_authenticate(email, password)
-        resource = find_by_email(email)
-
+        resource = find_by_email_case_insensitive(email)
+  
         if resource && resource.authenticate(password)
           resource.tap do |u|
             u.reset_auth_token!
@@ -89,6 +89,10 @@ module Pillowfort
         else
           return false
         end
+      end
+
+      def find_by_email_case_insensitive(email)
+        find_by("lower(email) = ?", email.downcase)
       end
 
       # constant-time comparison algorithm to prevent timing attacks.  Lifted

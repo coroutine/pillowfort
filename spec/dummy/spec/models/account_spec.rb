@@ -195,13 +195,31 @@ RSpec.describe Account, :type => :model do
 
       context 'when email and token are provided' do
 
+        context 'email case-sensitivity' do
+          describe 'when an uppercased email address is provided' do
+            let(:email_param) { email.upcase }
+
+            it 'should yield the matched account' do
+              expect { |b| Account.authenticate_securely(email_param, token_param, &b) }.to yield_with_args(account)
+            end
+          end
+
+          describe 'when a downcased email address is provided' do
+            let(:email_param) { email.downcase }
+
+            it 'should yield the matched account' do
+              expect { |b| Account.authenticate_securely(email_param, token_param, &b) }.to yield_with_args(account)
+            end
+          end
+        end
+
         context 'when the resource is located' do
 
           context 'when the auth_token is expired' do
             let(:auth_token_expires_at) { 1.week.ago }
 
             it 'should reset the account auth_token' do
-              allow(Account).to receive(:find_by_email) { account }
+              allow(Account).to receive(:find_by_email_case_insensitive) { account }
               expect(account).to receive(:reset_auth_token!)
               subject
             end
