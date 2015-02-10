@@ -133,8 +133,8 @@ RSpec.describe Account, :type => :model do
       end
     end
 
-    describe '#token_expired?' do
-      subject { account.token_expired? }
+    describe '#auth_token_expired?' do
+      subject { account.auth_token_expired? }
 
       context 'when the token expiration is in the future' do
         let(:auth_token_expires_at) { 1.minute.from_now }

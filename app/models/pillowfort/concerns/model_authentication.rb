@@ -1,5 +1,6 @@
 require 'bcrypt'
 require 'pillowfort/model_context'
+require 'pillowfort/token_generator'
 
 module Pillowfort
   module Concerns::ModelAuthentication
@@ -33,7 +34,7 @@ module Pillowfort
         save validate: false
       end
 
-      def token_expired?
+      def auth_token_expired?
         auth_token_expires_at <= Time.now
       end
 
@@ -53,6 +54,8 @@ module Pillowfort
     end
 
     module ClassMethods
+      include Pillowfort::TokenGenerator
+
       def authenticate_securely(email, token)
         return false if email.blank? || token.blank?
 
@@ -63,7 +66,7 @@ module Pillowfort
 
             # if the resource token is expired, reset it and
             # return false, triggering a 401
-            if resource.token_expired?
+            if resource.auth_token_expired?
               resource.reset_auth_token!
               return false
             else
@@ -81,7 +84,7 @@ module Pillowfort
 
       def find_and_authenticate(email, password)
         resource = find_by_email_case_insensitive(email)
-  
+
         if resource && resource.authenticate(password)
           resource.tap do |u|
             u.reset_auth_token!
@@ -93,22 +96,6 @@ module Pillowfort
 
       def find_by_email_case_insensitive(email)
         find_by("lower(email) = ?", email.downcase)
-      end
-
-      # constant-time comparison algorithm to prevent timing attacks.  Lifted
-      # from Devise.
-      def secure_compare(a, b)
-        return false if a.blank? || b.blank? || a.bytesize != b.bytesize
-        l = a.unpack "C#{a.bytesize}"
-
-        res = 0
-        b.each_byte { |byte| res |= byte ^ l.shift }
-        res == 0
-      end
-
-      # Generates a value for our auth token.  Lifted from Devise.
-      def friendly_token
-        SecureRandom.base64(32).tr('+/=lIO0', 'pqrsxyz')
       end
     end
   end
