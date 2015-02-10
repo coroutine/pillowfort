@@ -90,11 +90,15 @@ RSpec.describe Account, :type => :model do
     let(:account) {
       FactoryGirl.create  :account,
                           auth_token: auth_token,
-                          auth_token_expires_at: auth_token_expires_at
+                          auth_token_expires_at: auth_token_expires_at,
+                          password_reset_token: password_reset_token,
+                          password_reset_token_expires_at: password_reset_token_expires_at
     }
 
     let(:auth_token) { 'abc123def456' }
     let(:auth_token_expires_at) { 1.day.from_now }
+    let(:password_reset_token) { '123abc456def' }
+    let(:password_reset_token_expires_at) { 1.hour.from_now }
 
     describe '#ensure_auth_token' do
       subject { account.auth_token }
@@ -158,6 +162,52 @@ RSpec.describe Account, :type => :model do
       describe 'after the call' do
         before { account.password = 'fudge_knuckles_45' }
         it { should_not eq(current_password) }
+      end
+    end
+
+    # ------------------------------------------------------------------------
+    # Password reset tokens
+    # ------------------------------------------------------------------------
+    describe '#password_token_expired?' do
+      subject { account.password_token_expired? }
+      describe 'an unexpired token' do
+        it { should be_falsey }
+      end
+
+      describe 'an expired token' do
+        let(:password_reset_token_expires_at) { 1.hour.ago }
+        it { should be_truthy }
+      end
+    end
+
+    shared_examples_for 'password token creator' do
+      describe '#password_reset_token' do
+        subject { account.password_reset_token }
+        it { should_not eq(password_reset_token) }
+      end
+
+      describe '#password_reset_token_expires_at' do
+        subject { account.password_reset_token_expires_at }
+        it { should_not eq(password_reset_token_expires_at) }
+      end
+    end
+
+    describe '#create_password_reset_token with default expiration time' do
+      before { account.create_password_reset_token }
+      it_behaves_like 'password token creator'
+
+      describe '#password_reset_token_expires_at' do
+        subject { account.password_reset_token_expires_at }
+        it { should be_within(5.seconds).of 1.hour.from_now }
+      end
+    end
+
+    describe '#create_password_reset_token with specific expiration time' do
+      before { account.create_password_reset_token(expiry: 10.minutes.from_now) }
+      it_behaves_like 'password token creator'
+      describe '#password_reset_token_expires_at' do
+        subject { account.password_reset_token_expires_at }
+        it {should be_within(5.seconds).of 10.minutes.from_now }
       end
     end
   end
