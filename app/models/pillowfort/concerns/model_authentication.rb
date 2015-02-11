@@ -1,6 +1,7 @@
 require 'bcrypt'
 require 'pillowfort/model_context'
 require 'pillowfort/token_generator'
+require 'pillowfort/model_finder'
 
 module Pillowfort
   module Concerns::ModelAuthentication
@@ -55,6 +56,7 @@ module Pillowfort
 
     module ClassMethods
       include Pillowfort::TokenGenerator
+      include Pillowfort::ModelFinder
 
       def authenticate_securely(email, token)
         return false if email.blank? || token.blank?
@@ -92,10 +94,6 @@ module Pillowfort
         else
           return false
         end
-      end
-
-      def find_by_email_case_insensitive(email)
-        find_by("lower(email) = ?", email.downcase)
       end
     end
   end

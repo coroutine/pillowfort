@@ -28,7 +28,6 @@ module Pillowfort
 
     module ClassMethods
       include Pillowfort::TokenGenerator
-
     end
   end
 end
