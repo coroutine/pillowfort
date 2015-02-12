@@ -7,12 +7,12 @@ module Pillowfort
     include Pillowfort::ControllerMethods
 
     included do
-      before_filter :enforce_account_activation!
+      before_filter :enforce_activation!
     end
 
     private
 
-    def enforce_account_activation!
+    def enforce_activation!
       context = Pillowfort::ModelContext
       if resource = self.send(context.resource_reader_name)
         unless resource.activated?
