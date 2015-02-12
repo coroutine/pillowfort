@@ -27,7 +27,11 @@ module Pillowfort
       end
 
       def activation_token_expired?
-        activation_token_expires_at <= Time.now
+        if activation_token_expires_at
+          activation_token_expires_at <= Time.now
+        else
+          true
+        end
       end
 
       def activated?

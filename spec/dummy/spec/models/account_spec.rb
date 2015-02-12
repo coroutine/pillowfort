@@ -269,6 +269,7 @@ RSpec.describe Account, :type => :model do
       its(:activated_at) { should be_blank }
       its(:activation_token) { should eq(activation_token) }
       its(:activation_token_expires_at) { should eq(activation_token_expires_at) }
+      its(:activation_token_expired?) { should be_falsey }
 
       context 'already activated' do
         before do
@@ -279,6 +280,7 @@ RSpec.describe Account, :type => :model do
         its(:activated_at) { should be_within(5.seconds).of Time.now }
         its(:activation_token) { should be_blank }
         its(:activation_token_expires_at) { should be_blank }
+        its(:activation_token_expired?) { should be_truthy }
       end
     end
 
@@ -288,10 +290,17 @@ RSpec.describe Account, :type => :model do
 
       its(:activation_token) { should_not be_blank }
       its(:activation_token_expires_at) { should be_within(5.seconds).of 1.hour.from_now }
+      its(:activation_token_expired?) { should be_falsey }
 
       context 'with specific expiration' do
         before { subject.create_activation_token(expiry: 5.minutes.from_now) }
         its(:activation_token_expires_at) { should be_within(5.seconds).of 5.minutes.from_now }
+        its(:activation_token_expired?) { should be_falsey }
+      end
+
+      context 'with expiration in the past' do
+        before { subject.create_activation_token(expiry: 10.minutes.ago) }
+        its(:activation_token_expired?) { should be_truthy }
       end
     end
   end
