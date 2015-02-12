@@ -6,9 +6,11 @@ Pillowfort is nothing more than a couple of concerns, bundled up for distributio
 
 ![Pillowfort](docs/assets/pillowfort.gif)
 
+## Authentication
+
 ### Controller Authentication Concerns
 
-The controller concern provides http basic authentication and access to a `current_#{model.class.name.underscore}`, assuming authentication was successful.  In the event authentication fails, the concern simply returns a 401 response.
+The controller authentication concern provides http basic authentication and access to a `current_#{model.class.name.underscore}`, assuming authentication was successful.  In the event authentication fails, the concern simply returns a 401 response.
 
 The controller concern also deletes the `WWW-Authenticate` header from the response.  Why the fuck would we do that?!  Here's why: if you're using something like Apache Cordova to build something like an iOS app that needs to authenticate against something like your API, this header is the bane of your existence.  You see, iOS will see the `WWW-Authenticate` header, do whatever the fuck it does with it and not pass it forward.  This means, there's no good way to handle the 401 response in your app, and do something smart, like redirecting the user to the login screen.
 
@@ -35,7 +37,7 @@ This concern also provides a couple of class methods for checking the authentici
 - `authenticate_securely(email, token)` performs safe token authentication
 - `find_and_authenticate(email, password)` performs the initial password authentication, and returns the user, if authentication is successful.
 
-#### Model Assumptions
+#### Authentication Model Assumptions
 
 Again, Pillowfort is opinionated, and in its opinion, you need the following fields defined on your model:
 
@@ -45,6 +47,79 @@ t.string   "password_digest",       null: false
 t.string   "auth_token"
 t.datetime "auth_token_expires_at"
 ```
+
+## Activation
+
+### Controller Activation Concern
+
+The controller activation concern adds another layer of protection to
+your API. It is dependent on the underlying
+`current_#{model.class.name.underscore}` method added by the
+authentication concern. It's whole purpose is to verify that the account
+has been activated by the user. It returns a 403 response status code in
+the event that the account has not been activated.
+
+Here is how you add the activation concern to a controller:
+
+```ruby
+include Pillowfort::Concerns::ControllerActivation
+```
+
+The `enforce_activation!` filter is added by default by including the
+`Pillowfort::ControllerActivation` concern into your controller. You can
+exclude the filter from appropriate actions or controllers by skipping
+it. This is how it is done:
+
+```ruby
+skip_filter :enforce_activation!, only: [:activate]
+```
+
+### Model Activation Concern
+
+The model activation concern encapsulate the core activation logic. This
+includes generating activation tokens, validating activation tokens,
+recording when a user was activated at activation time.
+
+You include the activation logic in the model via the
+`Pillowfort::Concerns::ModelActivation` concern:
+
+```ruby
+include Pillowfort::Concerns::ModelActivation
+```
+
+This concerns adds the following activation related methods to the
+model.
+
+#### `create_activation_token`
+
+`create_activation_token` will create and set the expiration date on
+an activation token. The expiration date can be specified by passing
+an `expiry` parameter like so:
+
+```ruby
+model.create_activation_token(expiry: 1.day.from_now)
+```
+
+The token and it's expiration date is then attached to the model.
+
+#### `activation_token_expired?`
+
+This method checks whether the activation token has expired. For our
+purposes, a used activation token is considered to be expired.
+
+#### `activated?`
+
+Indicates whether the model has been activated.
+
+#### `activated_at`
+
+Stores when the model was activated.
+
+#### `activate!`
+
+Encapsulate the logic of activating a model.
+
+---
 
 ## Examples
 
