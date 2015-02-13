@@ -310,3 +310,4 @@ Just add Pillowfort to your `Gemfile`, and include the concerns where appropriat
 ```ruby
 gem 'pillowfort'
 ```
+
