@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    pillowfort (0.1.2)
+    pillowfort (0.2.0)
       bcrypt (~> 3.1.7)
       rails (~> 4.2.0)
 
@@ -44,7 +44,7 @@ GEM
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
     arel (6.0.0)
-    bcrypt (3.1.9)
+    bcrypt (3.1.10)
     builder (3.2.2)
     coderay (1.1.0)
     diff-lcs (1.2.5)
