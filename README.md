@@ -48,6 +48,8 @@ t.string   "auth_token"
 t.datetime "auth_token_expires_at"
 ```
 
+---
+
 ## Activation
 
 ### Controller Activation Concern
@@ -118,6 +120,119 @@ Stores when the model was activated.
 #### `activate!`
 
 Encapsulate the logic of activating a model.
+
+#### `find_and_activate`
+
+The `find_and_activate` class level method will find the resource
+provided in the email, retrieve the activation token, compare it against
+the token and then activate the account. The calling code will then have
+the opportunity to perform an action after the model is activated.
+
+You can do the following if you do not want to do anything after a
+successful activation:
+
+```ruby
+Model.find_and_activate(email, token)
+```
+
+This will mark the model attached to the email as being activated, clear
+the activation token and it's expiration date.
+
+You can also perform other actions after the model is successfully
+activated. This could include anything from adding a flash message to
+redirecting the user to a full registration page.
+
+```ruby
+Model.find_and_activate(email, token) do |model|
+  Rails.logger.info("Activated #{model.inspect}")
+end
+```
+
+### Activation Model Expectations
+
+The model activation concern relies on the following columns in the
+model:
+
+```ruby
+t.datetime :activated_at
+t.string   :activation_token
+t.datetime :activation_token_expires_at
+```
+
+It is recommended to and an unique index against the activation_token
+column:
+
+```ruby
+add_index :users, :activation_token, name: 'idx_users_activation_token', unique: true
+```
+
+This will speed up queries against the activation token and enforce
+uniqueness at the database level.
+
+---
+
+## Password Reset
+
+### Password Reset Model Concern
+
+Pillowfort provides the model level constructs to support password
+resetting at the model level. This include creating and validating a
+password reset token.
+
+#### `create_password_reset_token`
+
+This will create a password reset token and set it's expiration date.
+The default expiration date is set to one hour from the creation of the
+token. You can pick a different expiration date using the following
+syntax:
+
+```ruby
+model.create_password_reset_token(expiry: 1.day.from_now)
+```
+
+#### `password_token_expired?`
+
+Determines whether the password reset token has expired. A missing token
+is considered to be expired.
+
+#### `clear_password_reset_token`
+
+
+
+#### `Model.find_and_validate_password_reset_token`
+
+Retrieves the model associated with the email address provided and
+validates the password reset token. It will yield the retrieved resource
+to the provided block:
+
+```ruby
+Model.find_and_validate_password_reset_token(email, token) do |model|
+  model.password = "new_password"
+  model.save!
+end
+```
+
+The calling code is responsible to either reset the password, perform
+additional actions or to redirect the user to the password page if it
+is required.
+
+### Password Reset Model Expectations
+
+The password reset concern expects the following fields to be set on the
+model:
+
+```ruby
+t.string :password_reset_token
+t.datetime :password_reset_token_expires_at
+```
+
+There should be an unique index on the `password_reset_token` column to
+help with retrieving the model by the token and to ensure that the token
+itself is unique:
+
+```ruby
+add_index :users, :password_reset_token, name: 'idx_users_pwd_reset_token', unique: true
+```
 
 ---
 
