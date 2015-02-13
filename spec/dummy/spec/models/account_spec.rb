@@ -260,9 +260,18 @@ RSpec.describe Account, :type => :model do
       end
     end
 
+    describe '#clear_password_reset_token' do
+      before { account.clear_password_reset_token }
+      subject { account }
+      its(:password_reset_token) { should be_blank }
+      its(:password_reset_token_expires_at) { should be_blank }
+      its(:password_token_expired?) { should be_truthy }
+    end
+
     # ------------------------------------------------------------------------
     # Activation
     # ------------------------------------------------------------------------
+
     describe '#actived?' do
       subject { account }
       it { should_not be_activated }
@@ -312,6 +321,8 @@ RSpec.describe Account, :type => :model do
     let(:auth_token_expires_at) { 1.day.from_now }
     let(:activation_token) { 'activateme' }
     let(:activation_token_expires_at) { 1.hour.from_now }
+    let(:password_reset_token) { 'resetme' }
+    let(:password_reset_token_expires_at) { 1.hour.from_now }
 
     let!(:account) {
       FactoryGirl.create  :account,
@@ -319,6 +330,8 @@ RSpec.describe Account, :type => :model do
                           auth_token: token,
                           password: password,
                           auth_token_expires_at: auth_token_expires_at,
+                          password_reset_token: password_reset_token,
+                          password_reset_token_expires_at: password_reset_token_expires_at,
                           activation_token: activation_token,
                           activation_token_expires_at: activation_token_expires_at
     }
@@ -428,6 +441,26 @@ RSpec.describe Account, :type => :model do
       context "when the email doesn't match" do
         let(:email_param) { 'notmyemail@gmail.com' }
         it { should be_falsey }
+      end
+    end
+
+    describe '.find_and_validate_password_reset_token' do
+      let(:email_param) { email }
+      let(:token_param) { password_reset_token }
+      subject { Account.find_and_validate_password_reset_token(email_param, token_param) }
+
+      context "when the email doesn't match" do
+        let(:email_param) { "bad_actor@gmail.com" }
+        it { should be_falsey }
+      end
+
+      context "when the token doesn't match" do
+        let(:token_param) { 'notmytoken' }
+        it { should be_falsey }
+      end
+
+      it 'should yield the matched account' do
+        expect { |b| Account.find_and_validate_password_reset_token(email_param, token_param, &b) }.to yield_with_args(account)
       end
     end
 

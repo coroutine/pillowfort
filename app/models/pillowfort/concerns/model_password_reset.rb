@@ -1,4 +1,6 @@
 require 'pillowfort/model_context'
+require 'pillowfort/token_generator'
+require 'pillowfort/model_finder'
 
 module Pillowfort
   module Concerns::ModelPasswordReset
@@ -12,7 +14,17 @@ module Pillowfort
       end
 
       def password_token_expired?
-        password_reset_token_expires_at <= Time.now
+        if password_reset_token_expires_at
+          password_reset_token_expires_at <= Time.now
+        else
+          true
+        end
+      end
+
+      def clear_password_reset_token
+        update_columns \
+          password_reset_token: nil,
+          password_reset_token_expires_at: nil
       end
 
       private
@@ -28,6 +40,23 @@ module Pillowfort
 
     module ClassMethods
       include Pillowfort::TokenGenerator
+      include Pillowfort::ModelFinder
+
+      def find_and_validate_password_reset_token(email, token)
+        return false if email.blank? || token.blank?
+
+        transaction do
+          if resource = find_by_email_case_insensitive(email)
+            if resource.password_token_expired?
+              return false
+            else
+              if secure_compare(resource.password_reset_token, token)
+                yield resource if block_given?
+              end
+            end
+          end
+        end
+      end
     end
   end
 end
