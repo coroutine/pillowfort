@@ -1,9 +1,11 @@
 require 'pillowfort/model_context'
+require 'pillowfort/controller_methods'
 
 module Pillowfort
   module Concerns::ControllerAuthentication
     extend ActiveSupport::Concern
     include ActionController::HttpAuthentication::Basic::ControllerMethods
+    include Pillowfort::ControllerMethods
 
     included do
       before_filter :authenticate_from_account_token!
@@ -24,15 +26,6 @@ module Pillowfort
       end
 
       allow_client_to_handle_unauthorized_status
-    end
-
-    def ensure_resource_reader(context)
-      reader_name = context.resource_reader_name
-      return if respond_to? reader_name
-
-      self.class.send :define_method, reader_name do
-        @authentication_resource
-      end
     end
 
     # This is necessary, as it allows Cordova to properly delegate 401 response
