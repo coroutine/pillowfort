@@ -13,6 +13,7 @@ Gem::Specification.new do |s|
   s.summary     = "Opinionated, session-less API authentication"
   s.description = "Opinionated, session-less API authentication"
   s.license     = "MIT"
+  s.require_ruby_version = '~> 2.2.0'
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["spec/**/*"]
