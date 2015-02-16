@@ -19,11 +19,15 @@ module Pillowfort
       validates :activation_token, absence: true, if: :activated?
       validates :activation_token_expires_at, absence: true, if: :activated?
 
-      def create_activation_token(expiry: nil, persist: true, validate: false)
+      def create_activation_token(expiry: nil)
         expiry ||= 1.hour.from_now
         self.activation_token = generate_activation_token
         self.activation_token_expires_at = expiry
-        save validate: validate if persist
+      end
+
+      def create_activation_token!(expiry: nil)
+        create_activation_token(expiry)
+        save validate: false
       end
 
       def activation_token_expired?
