@@ -11,7 +11,7 @@ module Pillowfort
 
       # non-activated resource
       validates :activation_token, presence: true, uniqueness: true
-      validates :activation_token_expires_at, presence: true, if: :activation_token
+      validates :activation_token_expires_at, presence: true, unless: :activated_at
       validates :activated_at, absence: true, if: :activation_token_expires_at
 
       # Activated resource
