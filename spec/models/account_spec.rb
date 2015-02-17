@@ -105,7 +105,6 @@ RSpec.describe Account, :type => :model do
         context 'all fields set' do
           let(:activated_at) { 1.day.ago }
 
-          it { should include( activation_token: [/must be blank/] ) }
           it { should include( activation_token_expires_at: [/must be blank/] ) }
           it { should include( activated_at: [/must be blank/] ) }
         end
