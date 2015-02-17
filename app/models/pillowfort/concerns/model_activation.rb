@@ -12,10 +12,10 @@ module Pillowfort
       # non-activated resource
       validates :activation_token, presence: true, uniqueness: true
       validates :activation_token_expires_at, presence: true, if: :activation_token
-      validates :activated_at, absence: true, if: :activation_token
+      validates :activated_at, absence: true, if: :activation_token_expires_at
 
       # Activated resource
-      validates :activated_at, presence: true, unless: :activation_token
+      validates :activated_at, presence: true, unless: :activation_token_expires_at
       validates :activation_token_expires_at, absence: true, if: :activated?
 
       def create_activation_token(expiry: nil)
