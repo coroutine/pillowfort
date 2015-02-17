@@ -45,7 +45,6 @@ module Pillowfort
       def activate!
         update_columns \
           activated_at: Time.now,
-          activation_token: nil,
           activation_token_expires_at: nil
       end
 

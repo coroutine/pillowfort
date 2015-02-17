@@ -287,7 +287,7 @@ RSpec.describe Account, :type => :model do
 
         it { should be_activated }
         its(:activated_at) { should be_within(5.seconds).of Time.now }
-        its(:activation_token) { should be_blank }
+        its(:activation_token) { should_not be_blank }
         its(:activation_token_expires_at) { should be_blank }
         its(:activation_token_expired?) { should be_truthy }
       end
