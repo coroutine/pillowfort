@@ -126,6 +126,13 @@ RSpec.describe Account, :type => :model do
 
           it { should include activation_token: [/has already been taken/] }
         end
+
+        context 'account activated under the old rules...' do
+          let(:activation_token) { nil }
+          let(:activated_at) { 1.day.ago }
+
+          it { should_not have_key :activation_token }
+        end
       end
     end
   end

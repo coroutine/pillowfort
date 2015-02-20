@@ -10,11 +10,12 @@ module Pillowfort
       Pillowfort::ModelContext.model_class = self
 
       # non-activated resource
-      validates :activation_token, presence: true, uniqueness: true
+      validates :activation_token, presence: true, uniqueness: true, unless: :activated_at
       validates :activation_token_expires_at, presence: true, unless: :activated_at
       validates :activated_at, absence: true, if: :activation_token_expires_at
 
       # Activated resource
+      validates :activation_token, presence: true, uniqueness: true, allow_nil: true, if: :activated_at
       validates :activated_at, presence: true, unless: :activation_token_expires_at
       validates :activation_token_expires_at, absence: true, if: :activated?
 
