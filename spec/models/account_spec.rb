@@ -377,6 +377,14 @@ RSpec.describe Account, :type => :model do
               expect { |b| Account.authenticate_securely(email_param, token_param, &b) }.to yield_with_args(account)
             end
           end
+
+          context 'when the resource has a longer auth token expiration date than usual...' do
+            let(:auth_token_expires_at) { 1.month.from_now }
+            before { Account.authenticate_securely(email_param, token_param, &block) }
+            subject { account.reload }
+
+            its(:auth_token_expires_at) { eq(auth_token_expires_at + 1.day) }
+          end
         end
 
         context 'when the resource is located' do
@@ -411,7 +419,7 @@ RSpec.describe Account, :type => :model do
           it { should be_falsey }
         end
 
-      end
+     end
     end
 
     describe '.find_and_activate' do

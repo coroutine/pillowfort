@@ -42,7 +42,7 @@ module Pillowfort
       private
 
       def touch_token_expiry!
-        update_column :auth_token_expires_at, 1.day.from_now
+        update_column :auth_token_expires_at, self.auth_token_expires_at + 1.day
       end
 
       def generate_auth_token
