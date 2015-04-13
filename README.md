@@ -48,6 +48,7 @@ t.string   "email",                 null: false
 t.string   "password_digest",       null: false
 t.string   "auth_token"
 t.datetime "auth_token_expires_at"
+t.integer  "auth_token_ttl"         null: false, default: 1.day
 ```
 
 ---
