@@ -17,7 +17,7 @@ module Pillowfort
       has_secure_password
 
       validates :email, presence: true, uniqueness: true
-      validates :password, length: { minimum: MIN_PASSWORD_LENGTH }
+      validates :password, length: { minimum: MIN_PASSWORD_LENGTH }, allow_nil: true
 
       before_save :ensure_auth_token
 

@@ -67,7 +67,7 @@ RSpec.describe Account, :type => :model do
       context 'presence_of' do
         let(:password) { nil }
 
-        it { should include(password: [/can't be blank/, /is too short/]) }
+        it { should include(password: [/can't be blank/]) }
       end
 
       context 'length of' do
@@ -81,6 +81,26 @@ RSpec.describe Account, :type => :model do
           let(:password) { "x"*80 }
 
           it { should include(password: [/is too long/])}
+        end
+
+        context "when the record is persisted" do
+          let(:password) { 'foobarbaz' }
+          before { account.save }
+
+          context "when the password is updated with a nil value" do
+            before {account.update_attribute :password, nil }
+            it { should be_empty }
+          end
+
+          context "when the password is updated with a short value" do
+            before {account.update_attributes password: '3' }
+            it { should include(password: [/is too short/]) }
+          end
+
+          context "when the password is updated with a short value" do
+            before {account.update_attributes password: "x"*80 }
+            it { should include(password: [/is too long/]) }
+          end
         end
       end
 
