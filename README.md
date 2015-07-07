@@ -24,13 +24,9 @@ skip_filter :authenticate_from_account_token!, only: [:create]
 
 ### Model Authentication Concerns
 
-<hr/>
-
 ><h3>Notice!</h3>
   <p>
   Pillowfort requires `config.eager_load = true` in your development and test environments, as we need the authorization model to be loaded when the application loads.
-
-<hr/>
 
 The model concern provides the core authentication logic.  This includes, token resets, token timeouts and password encryption.
 
@@ -48,10 +44,9 @@ t.string   "email",                 null: false
 t.string   "password_digest",       null: false
 t.string   "auth_token"
 t.datetime "auth_token_expires_at"
-t.integer  "auth_token_ttl"         null: false, default: 1.day
 ```
 
----
+
 
 ## Activation
 
@@ -237,7 +232,31 @@ itself is unique:
 add_index :users, :password_reset_token, name: 'idx_users_pwd_reset_token', unique: true
 ```
 
----
+## Configuration
+
+Here's the default configuration for Pillowfort:
+
+```ruby
+Pillowfort.configure do |config|
+
+  # This is how long the auth token will remain valid
+  # if there is no user activity.
+  config.auth_token_ttl = 1.day
+
+  # Minimum allowable password
+  config.min_password_length = 8
+end
+```
+
+This configuration can be modified for your application.  Simply create `config/initializers/pillowfort.rb` and use the above configuration syntax to override the defaults.  For example:
+
+```ruby
+Pillowfort.configure do |config|
+
+  # let's make the token slow to expire
+  config.auth_token_ttl = 1.month  
+end
+```
 
 ## Examples
 
@@ -313,4 +332,3 @@ Just add Pillowfort to your `Gemfile`, and include the concerns where appropriat
 ```ruby
 gem 'pillowfort'
 ```
-

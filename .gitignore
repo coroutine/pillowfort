@@ -5,3 +5,5 @@ spec/dummy/log/*.log
 pkg/
 
 .DS_Store
+
+pillowfort-*.gem

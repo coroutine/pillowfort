@@ -162,7 +162,6 @@ RSpec.describe Account, :type => :model do
       FactoryGirl.create  :account,
                           auth_token: auth_token,
                           auth_token_expires_at: auth_token_expires_at,
-                          auth_token_ttl: auth_token_ttl,
                           password_reset_token: password_reset_token,
                           password_reset_token_expires_at: password_reset_token_expires_at,
                           activation_token: activation_token,
@@ -171,7 +170,6 @@ RSpec.describe Account, :type => :model do
 
     let(:auth_token) { 'abc123def456' }
     let(:auth_token_expires_at) { 1.day.from_now }
-    let(:auth_token_ttl) { 1.hour }
     let(:password_reset_token) { '123abc456def' }
     let(:password_reset_token_expires_at) { 1.hour.from_now }
     let(:activation_token) { 'activateme' }
@@ -347,7 +345,6 @@ RSpec.describe Account, :type => :model do
     let(:token) { 'deadbeef' }
     let(:password) { 'admin4lolz' }
     let(:auth_token_expires_at) { 1.day.from_now }
-    let(:auth_token_ttl) { 1.day }
     let(:activation_token) { 'activateme' }
     let(:activation_token_expires_at) { 1.hour.from_now }
     let(:password_reset_token) { 'resetme' }
@@ -359,7 +356,6 @@ RSpec.describe Account, :type => :model do
                           auth_token: token,
                           password: password,
                           auth_token_expires_at: auth_token_expires_at,
-                          auth_token_ttl: auth_token_ttl,
                           password_reset_token: password_reset_token,
                           password_reset_token_expires_at: password_reset_token_expires_at,
                           activation_token: activation_token,
@@ -400,15 +396,6 @@ RSpec.describe Account, :type => :model do
             it 'should yield the matched account' do
               expect { |b| Account.authenticate_securely(email_param, token_param, &b) }.to yield_with_args(account)
             end
-          end
-
-          context 'when the resource has a longer auth token ttl date than usual...' do
-            let(:now) { Time.now }
-            let(:auth_token_ttl) { 1.week }
-            before { Account.authenticate_securely(email_param, token_param, &block) }
-            subject { account.reload }
-
-            its(:auth_token_expires_at) { should be_within(2.seconds).of(now + auth_token_ttl)}
           end
         end
 

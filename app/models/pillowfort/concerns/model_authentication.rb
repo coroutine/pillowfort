@@ -8,8 +8,6 @@ module Pillowfort
     extend ActiveSupport::Concern
     include BCrypt
 
-    MIN_PASSWORD_LENGTH = 8
-
     included do
       Pillowfort::ModelContext.model_class = self
 
@@ -17,7 +15,9 @@ module Pillowfort
       has_secure_password
 
       validates :email, presence: true, uniqueness: true
-      validates :password, length: { minimum: MIN_PASSWORD_LENGTH }, allow_nil: true
+      validates :password,
+                length: { minimum: Pillowfort.config.min_password_length },
+                allow_nil: true
 
       before_save :ensure_auth_token
 
@@ -27,7 +27,7 @@ module Pillowfort
 
       def reset_auth_token
         self.auth_token             = generate_auth_token
-        self.auth_token_expires_at  = 1.day.from_now
+        self.auth_token_expires_at  = generate_expiry
       end
 
       def reset_auth_token!
@@ -41,8 +41,12 @@ module Pillowfort
 
       private
 
+      def generate_expiry
+        Time.now + Pillowfort.config.auth_token_ttl
+      end
+
       def touch_token_expiry!
-        update_column :auth_token_expires_at, Time.now + auth_token_ttl
+        update_column :auth_token_expires_at, generate_expiry
       end
 
       def generate_auth_token
