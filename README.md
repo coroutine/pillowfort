@@ -199,20 +199,17 @@ is considered to be expired.
 
 #### `Model.find_and_validate_password_reset_token`
 
-Retrieves the model associated with the email address provided and
-validates the password reset token. It will yield the retrieved resource
-to the provided block:
+Retrieves the model associated with the provided reset token, yielding the
+model to the provided block.
 
 ```ruby
-Model.find_and_validate_password_reset_token(email, token) do |model|
+Model.find_and_validate_password_reset_token(token) do |model|
   model.password = "new_password"
   model.save!
 end
 ```
 
-The calling code is responsible to either reset the password, perform
-additional actions or to redirect the user to the password page if it
-is required.
+The calling code is responsible for resetting and saving the password.  
 
 ### Password Reset Model Expectations
 
