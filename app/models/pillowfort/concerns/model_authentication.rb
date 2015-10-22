@@ -19,7 +19,8 @@ module Pillowfort
                 length: { minimum: Pillowfort.config.min_password_length },
                 allow_nil: true
 
-      before_save :ensure_auth_token
+      before_validation :normalize_email
+      before_save       :ensure_auth_token
 
       def ensure_auth_token
         reset_auth_token if auth_token.blank?
@@ -54,6 +55,12 @@ module Pillowfort
         loop do
           token = resource_class.friendly_token
           break token unless resource_class.where(auth_token: token).first
+        end
+      end
+
+      def normalize_email
+        if self.email.present?
+          self.email = self.email.downcase.strip
         end
       end
     end

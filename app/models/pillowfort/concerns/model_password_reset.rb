@@ -22,9 +22,10 @@ module Pillowfort
       end
 
       def clear_password_reset_token
-        update_columns \
+        update_columns(
           password_reset_token: nil,
           password_reset_token_expires_at: nil
+        )
       end
 
       private
@@ -42,17 +43,14 @@ module Pillowfort
       include Pillowfort::TokenGenerator
       include Pillowfort::ModelFinder
 
-      def find_and_validate_password_reset_token(email, token)
-        return false if email.blank? || token.blank?
+      def find_and_validate_password_reset_token(token)
+        return false if token.blank?
 
         transaction do
-          if resource = find_by_email_case_insensitive(email)
-            if resource.password_token_expired?
-              return false
-            else
-              if secure_compare(resource.password_reset_token, token)
-                yield resource if block_given?
-              end
+          find_by( password_reset_token: token ).tap do |resource|
+            if resource
+              return false if resource.password_token_expired?
+              yield resource if block_given?
             end
           end
         end

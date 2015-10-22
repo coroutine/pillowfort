@@ -10,13 +10,25 @@ module Pillowfort
       Pillowfort::ModelContext.model_class = self
 
       # non-activated resource
-      validates :activation_token, presence: true, uniqueness: true, unless: :activated_at
-      validates :activation_token_expires_at, presence: true, unless: :activated_at
-      validates :activated_at, absence: true, if: :activation_token_expires_at
+      validates :activation_token,            presence: true,
+                                              uniqueness: true,
+                                              unless: :activated_at
+
+      validates :activation_token_expires_at, presence: true,
+                                              unless: :activated_at
+
+      validates :activated_at,                absence: true,
+                                              if: :activation_token_expires_at
 
       # Activated resource
-      validates :activation_token, presence: true, uniqueness: true, allow_nil: true, if: :activated_at
-      validates :activated_at, presence: true, unless: :activation_token_expires_at
+      validates :activation_token,            presence: true,
+                                              uniqueness: true,
+                                              allow_nil: true,
+                                              if: :activated_at
+
+      validates :activated_at,                presence: true,
+                                              unless: :activation_token_expires_at
+
       validates :activation_token_expires_at, absence: true, if: :activated?
 
       def create_activation_token(expiry: nil)
@@ -67,13 +79,16 @@ module Pillowfort
         return false if email.blank? || token.blank?
 
         transaction do
-          if resource = find_by_email_case_insensitive(email)
+          resource = find_by_email_case_insensitive(email)
+
+          if resource
             if resource.activation_token_expired?
               return false
             else
               if secure_compare(resource.activation_token, token)
                 resource.activate!
                 yield resource if block_given?
+                resource
               end
             end
           end

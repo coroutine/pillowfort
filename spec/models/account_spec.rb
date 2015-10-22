@@ -74,13 +74,13 @@ RSpec.describe Account, :type => :model do
         context "when it's too short" do
           let(:password) { "x"*3 }
 
-          it { should include(password: [/is too short/])}
+          it { should include(password: [/is too short/]) }
         end
 
         context "when it's too long" do
           let(:password) { "x"*80 }
 
-          it { should include(password: [/is too long/])}
+          it { should include(password: [/is too long/]) }
         end
 
         context "when the record is persisted" do
@@ -154,6 +154,18 @@ RSpec.describe Account, :type => :model do
           it { should_not have_key :activation_token }
         end
       end
+    end
+  end
+
+  describe 'its callbacks' do
+    describe 'email normalization' do
+      let(:account)   { FactoryGirl.create :account, email: email }
+      let(:email)     { ' HotCarl@Gmail.Com ' }
+      let(:expected)  { 'hotcarl@gmail.com' }
+
+      subject { account.email }
+
+      it { should eq(expected) }
     end
   end
 
@@ -362,6 +374,20 @@ RSpec.describe Account, :type => :model do
                           activation_token_expires_at: activation_token_expires_at
     }
 
+    describe '.find_by_email_case_insensitive' do
+      subject { Account.find_by_email_case_insensitive(search_email) }
+
+      context 'when an email is provided' do
+        let(:search_email) { email }
+        it { should_not be_nil}
+      end
+
+      context 'when no email is provided' do
+        let(:search_email) { nil }
+        it { should be_nil }
+      end
+    end
+
     describe '.authenticate_securely' do
       let(:email_param) { email }
       let(:token_param) { token }
@@ -452,6 +478,8 @@ RSpec.describe Account, :type => :model do
             expect { |b| Account.find_and_activate(email_param, token_param, &b) }.to yield_with_args(account)
           end
 
+          it { should == account }
+
           context "when the activation_token is expired" do
             let(:activation_token_expires_at) { 1.day.ago }
             it { should be_falsey }
@@ -471,14 +499,8 @@ RSpec.describe Account, :type => :model do
     end
 
     describe '.find_and_validate_password_reset_token' do
-      let(:email_param) { email }
       let(:token_param) { password_reset_token }
-      subject { Account.find_and_validate_password_reset_token(email_param, token_param) }
-
-      context "when the email doesn't match" do
-        let(:email_param) { "bad_actor@gmail.com" }
-        it { should be_falsey }
-      end
+      subject { Account.find_and_validate_password_reset_token(token_param) }
 
       context "when the token doesn't match" do
         let(:token_param) { 'notmytoken' }
@@ -486,8 +508,10 @@ RSpec.describe Account, :type => :model do
       end
 
       it 'should yield the matched account' do
-        expect { |b| Account.find_and_validate_password_reset_token(email_param, token_param, &b) }.to yield_with_args(account)
+        expect { |b| Account.find_and_validate_password_reset_token(token_param, &b) }.to yield_with_args(account)
       end
+
+      it { should == account }
     end
 
     describe '.find_and_authenticate' do
