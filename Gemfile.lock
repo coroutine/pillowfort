@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    pillowfort (0.3.0)
+    pillowfort (1.0.0)
       bcrypt (~> 3.1.7)
       rails (~> 4.2.0)
 
