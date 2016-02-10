@@ -9,15 +9,15 @@ class CreatePillowfortTokens < ActiveRecord::Migration
       t.string      :type,            null: false,  default: 'session'
       t.string      :token,           null: false
       t.string      :realm,           null: false,  default: 'application'
-      t.datetime    :created_at       null: false
+      t.datetime    :created_at,      null: false
       t.datetime    :expires_at,      null: false
       t.datetime    :confirmed_at,    null: true
     end
 
     add_index :pillowfort_tokens,
-                [:user_id, :type, :realm],
+                [:resource_id, :type, :realm],
                 unique: true,
-                name: :udx_pillowfort_tokens_on_uid_type_and_realm
+                name: :udx_pillowfort_tokens_on_rid_type_and_realm
 
     add_index :pillowfort_tokens,
                 [:type, :token],

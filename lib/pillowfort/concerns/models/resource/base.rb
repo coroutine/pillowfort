@@ -23,8 +23,12 @@ module Pillowfort
             # callbacks
             before_validation :normalize_email
 
+            # attributes
+            attr_reader :password
+            attr_reader :password_confirmation
+
             # associations
-            has_one  :activation_token,      -> { where(type: 'activation', realm: 'application' },
+            has_one  :activation_token,      -> { where(type: 'activation', realm: 'application') },
                                               class_name: Pillowfort.config.token_class.to_s.classify,
                                               foreign_key: :resource_id
             has_one  :password_reset_token,  -> { where(type: 'password_reset', realm: 'application') },
@@ -35,11 +39,11 @@ module Pillowfort
                                               foreign_key: :resource_id
 
             # validations
-            validate_presence_of      :email
-            validate_uniquess_of      :email
-            validates_presence_of     :password, unless: :password_digest?
-            validate_length_of        :password, minimum: Pillowfort.config.password_min_length, allow_nil: true
-            validate_confirmation_of  :password, allow_nil: true
+            validates_presence_of      :email
+            validates_uniqueness_of    :email
+            validates_presence_of      :password, unless: :password_digest?
+            validates_length_of        :password, minimum: Pillowfort.config.password_min_length, allow_nil: true
+            validates_confirmation_of  :password, allow_nil: true
 
           end
 
@@ -48,68 +52,72 @@ module Pillowfort
           # Class Methods
           #--------------------------------------------------
 
-          # This method accepts authentication information and checks
-          # the database for the email and session token. If all goes
-          # well, we reset the session token with the realm; otherwise
-          # we raise the appropriate error.
-          #
-          def self.authenticate_securely(email, token, realm='application')
-            email = email.to_s.downcase.strip
-            token = token.to_s.strip
-            realm = realm.to_s.downcase.strip
+          class_methods do
 
-            if email.blank? || token.blank?
-              return false
-            else
-              transaction do
-                if resource = self.where(email: email).first
-                  if resource.activated?
-                    if session_token = resource.session_tokens.where(realm: realm).first
+            # This method accepts authentication information and checks
+            # the database for the email and session token. If all goes
+            # well, we reset the session token with the realm; otherwise
+            # we raise the appropriate error.
+            #
+            def authenticate_securely(email, token, realm='application')
+              email = email.to_s.downcase.strip
+              token = token.to_s.strip
+              realm = realm.to_s.downcase.strip
 
-                      if session_token.expired?
-                        session_token.reset!
-                        raise Pillowfort::NotAuthenticatedError     # token expired
-                      else
-                        klass = Pillowfort.config.token_class.to_s.classify.constantize
-                        if klass.secure_compare(session_token.token, token)
-                          session_token.refresh!
-                          yield resource                            # success!
+              if email.blank? || token.blank?
+                raise Pillowfort::NotAuthenticatedError               # no anything
+              else
+                transaction do
+                  if resource = self.where(email: email).first
+                    if resource.activated?
+                      if session_token = resource.session_tokens.where(realm: realm).first
+
+                        if session_token.expired?
+                          session_token.reset!
+                          raise Pillowfort::NotAuthenticatedError     # token expired
                         else
-                          raise Pillowfort::NotAuthenticatedError   # bad token
+                          klass = Pillowfort.config.token_class.to_s.classify.constantize
+                          if klass.secure_compare(session_token.token, token)
+                            session_token.refresh!
+                            yield resource                            # success!
+                          else
+                            raise Pillowfort::NotAuthenticatedError   # bad token
+                          end
                         end
-                      end
 
+                      else
+                        raise Pillowfort::NotAuthenticatedError       # no token
+                      end
                     else
-                      raise Pillowfort::NotAuthenticatedError       # no token
+                      raise Pillowfort::NotActivatedError             # not activated
                     end
                   else
-                    raise Pillowfort::NotActivatedError             # not activated
+                    raise Pillowfort::NotAuthenticatedError           # no resource
                   end
-                else
-                  raise Pillowfort::NotAuthenticatedError           # no resource
                 end
               end
             end
-          end
 
-          # This method accepts authentication information and checks
-          # the database for the email and password digest. If all goes
-          # well, we reset the session token with the realm; otherwise
-          # we raise the appropriate error.
-          #
-          def self.find_and_authenticate(email, password, realm='application')
-            resource = self.where(email: email.to_s.downcase).first
+            # This method accepts authentication information and checks
+            # the database for the email and password digest. If all goes
+            # well, we reset the session token with the realm; otherwise
+            # we raise the appropriate error.
+            #
+            def find_and_authenticate(email, password, realm='application')
+              resource = self.where(email: email.to_s.downcase).first
 
-            if resource && resource.authenticate(password)
-              if resource.activated?
-                resource.reset_session(realm)!
-                reseource
+              if resource && resource.authenticate(password)
+                if resource.activated?
+                  resource.reset_session!(realm)
+                  resource
+                else
+                  raise Pillowfort::NotActivatedError
+                end
               else
-                raise Pillowfort::NotActivatedError
+                raise Pillowfort::NotAuthenticatedError
               end
-            else
-              raise Pillowfort::NotAuthenticatedError
             end
+
           end
 
 
@@ -159,12 +167,20 @@ module Pillowfort
 
           #========== SESSION ===============================
 
+          # This method accepts a plain text password and
+          # determines whether or not it matches the
+          # password digest for the current user.
+          #
+          def authenticate(unencrypted)
+            SCrypt::Password.new(password_digest) == unencrypted && self
+          end
+
           # This method delegates the token reset process to the
           # model's session token. A session token will be created
           # if none exists.
           #
-          def reset_session!
-            token = session_token.first_or_initialize
+          def reset_session!(realm='application')
+            token = session_tokens.where(realm: realm).first_or_initialize
             token.reset!
             token.token
           end

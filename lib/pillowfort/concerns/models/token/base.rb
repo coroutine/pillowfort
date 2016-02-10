@@ -23,14 +23,13 @@ module Pillowfort
             # callbacks
             before_validation :normalize_type
             before_validation :normalize_realm
-            before_validation :generate_token,  on: create
+            before_validation :reset_token,  on: :create
 
             # turn off fucking sti
             self.inheritance_column = :_type_disabled
 
             # associations
-            belongs_to :resource, class_name:  Pillowfort.config.resource_class.to_s.classify,
-                                  foreign_key: :resource_id
+            belongs_to :resource, class_name:  Pillowfort.config.resource_class.to_s.classify
 
             # validations
             validates :resource, presence: true
@@ -45,21 +44,25 @@ module Pillowfort
           # Class Methods
           #------------------------------------------------
 
-          #========== SECURITY ============================
+          class_methods do
 
-          # This method performs a constant-time comparison
-          # of pillowfort tokens in an effort to confound
-          # timing attacks.
-          #
-          # This was lifted verbatim from Devise.
-          #
-          def self.secure_compare(a, b)
-            return false if a.blank? || b.blank? || a.bytesize != b.bytesize
-            l = a.unpack "C#{a.bytesize}"
+            #========== SECURITY ============================
 
-            res = 0
-            b.each_byte { |byte| res |= byte ^ l.shift }
-            res == 0
+            # This method performs a constant-time comparison
+            # of pillowfort tokens in an effort to confound
+            # timing attacks.
+            #
+            # This was lifted verbatim from Devise.
+            #
+            def secure_compare(a, b)
+              return false if a.blank? || b.blank? || a.bytesize != b.bytesize
+              l = a.unpack "C#{a.bytesize}"
+
+              res = 0
+              b.each_byte { |byte| res |= byte ^ l.shift }
+              res == 0
+            end
+
           end
 
 
@@ -74,7 +77,7 @@ module Pillowfort
           #
           def refresh!
             refresh_expiry
-            save(validate: false)
+            save!
           end
 
           # This method is a public interface that allows the
@@ -83,7 +86,8 @@ module Pillowfort
           def reset!
             reset_token
             refresh_expiry
-            save(validate: false)
+            reset_confirmation
+            save!
           end
 
 
@@ -91,13 +95,13 @@ module Pillowfort
 
           def confirm
             unless confirmed?
-              confirmed_at = Time.now
+              self.confirmed_at = Time.now
             end
           end
 
           def confirm!
             confirm
-            save(validate: false)
+            save!
           end
 
           def confirmed?
@@ -109,17 +113,17 @@ module Pillowfort
 
           def expire
             unless expired?
-              expires_at = Time.now - 1.second
+              self.expires_at = Time.now - 1.second
             end
           end
 
           def expire!
             expire
-            save(validate: false)
+            save!
           end
 
           def expired?
-            Time.now > expired_at
+            Time.now > expires_at
           end
 
 
@@ -137,6 +141,13 @@ module Pillowfort
             self.expires_at = Time.now + ttl
           end
 
+          # This method will nullify the token's confirmation
+          # timestamp.
+          #
+          def reset_confirmation
+            self.confirmed_at = nil
+          end
+
           # This method will create new tokens in a loop until
           # one is generated that is unique for the token's type.
           #
@@ -147,7 +158,7 @@ module Pillowfort
             end
           end
 
-          
+
           #========== NORMALIZATION =======================
 
           # This method ensures all realms are stored in a
@@ -191,9 +202,9 @@ module Pillowfort
             config = Pillowfort.config
 
             case self.type
-            when activation     then config.activation_token_ttl
-            when password_reset then config.password_reset_ttl
-            else                     config.session_token_ttl
+            when 'activation'     then config.activation_token_ttl
+            when 'password_reset' then config.password_reset_token_ttl
+            else                       config.session_token_ttl
             end
           end
 

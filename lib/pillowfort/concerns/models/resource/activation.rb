@@ -20,7 +20,7 @@ module Pillowfort
           #
           def activatable?
             token = activation_token
-            token && !token.expired? && !token.confirmed?
+            !!(token && !token.expired? && !token.confirmed?)
           end
 
           # This method determines whether or not the resource
@@ -47,7 +47,7 @@ module Pillowfort
           # in a relatively decoupled way.
           #
           def require_activation!
-            token = activation_token.first_or_initialize
+            token = activation_token || build_activation_token
             token.reset!
             token
           end

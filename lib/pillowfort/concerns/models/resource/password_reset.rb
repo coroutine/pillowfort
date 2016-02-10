@@ -20,7 +20,7 @@ module Pillowfort
           #
           def password_resettable?
             token = password_reset_token
-            token && !token.expired? && !token.confirmed?
+            !!(token && !token.expired? && !token.confirmed?)
           end
 
           # This method is a public interface for accepting a
@@ -40,7 +40,7 @@ module Pillowfort
           # in a relatively decoupled way.
           #
           def require_password_reset!
-            token = password_reset_token.first_or_initialize
+            token = password_reset_token || build_password_reset_token
             token.reset!
             token
           end
