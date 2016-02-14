@@ -70,7 +70,7 @@ module Pillowfort
         #
         def pillowfort_realm
           @pillowfort_realm ||= begin
-            (headers['HTTP_X_Realm'] || 'Application').to_s.underscore.strip
+            (request.headers['HTTP_X_REALM'] || 'Application').to_s.underscore.strip
           end
         end
 
