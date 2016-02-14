@@ -12,6 +12,38 @@ module Pillowfort
 
 
           #------------------------------------------------
+          # Class Methods
+          #------------------------------------------------
+
+          class_methods do
+
+            # This method locates the user record and returns
+            # it if the supplied token matches and is
+            # activatable.
+            #
+            def find_by_activation_token(email, token)
+              email = email.to_s.downcase.strip
+              token = token.to_s.strip
+
+              if resource = self.where(email: email).first
+                if resource.activatable?
+                  if resource.activation_token.secure_compare(token)
+                    yield resource
+                  else
+                    raise Pillowfort::NotAuthenticatedError       # token invalid
+                  end
+                else
+                  raise Pillowfort::NotAuthenticatedError         # not activatable
+                end
+              else
+                raise Pillowfort::NotAuthenticatedError           # no resource
+              end
+            end
+
+          end
+
+
+          #------------------------------------------------
           # Public Methods
           #------------------------------------------------
 

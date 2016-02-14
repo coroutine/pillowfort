@@ -46,22 +46,7 @@ module Pillowfort
 
           class_methods do
 
-            #========== SECURITY ============================
 
-            # This method performs a constant-time comparison
-            # of pillowfort tokens in an effort to confound
-            # timing attacks.
-            #
-            # This was lifted verbatim from Devise.
-            #
-            def secure_compare(a, b)
-              return false if a.blank? || b.blank? || a.bytesize != b.bytesize
-              l = a.unpack "C#{a.bytesize}"
-
-              res = 0
-              b.each_byte { |byte| res |= byte ^ l.shift }
-              res == 0
-            end
 
           end
 
@@ -70,24 +55,24 @@ module Pillowfort
           # Public Methods
           #------------------------------------------------
 
-          #========== RESETS ==============================
+          #========== COMPARISONS =========================
 
-          # This method is a public interface that allows the
-          # associated resource to extend the token's expiry.
+          # This method performs a constant-time comparison
+          # of pillowfort tokens in an effort to confound
+          # timing attacks.
           #
-          def refresh!
-            refresh_expiry
-            save!
-          end
+          # This was lifted verbatim from Devise.
+          #
+          def secure_compare(value)
+            a = self.token
+            b = value
 
-          # This method is a public interface that allows the
-          # associated resource to reset the token completely.
-          #
-          def reset!
-            reset_token
-            refresh_expiry
-            reset_confirmation
-            save!
+            return false if a.blank? || b.blank? || a.bytesize != b.bytesize
+            l = a.unpack "C#{a.bytesize}"
+
+            res = 0
+            b.each_byte { |byte| res |= byte ^ l.shift }
+            res == 0
           end
 
 
@@ -124,6 +109,27 @@ module Pillowfort
 
           def expired?
             Time.now > expires_at
+          end
+
+
+          #========== RESETS ==============================
+
+          # This method is a public interface that allows the
+          # associated resource to extend the token's expiry.
+          #
+          def refresh!
+            refresh_expiry
+            save!
+          end
+
+          # This method is a public interface that allows the
+          # associated resource to reset the token completely.
+          #
+          def reset!
+            reset_token
+            refresh_expiry
+            reset_confirmation
+            save!
           end
 
 
@@ -189,11 +195,24 @@ module Pillowfort
           # This was lifted verbatim from Devise.
           #
           def friendly_token
-            SecureRandom.base64(32).tr('+/=lIO0', 'pqrsxyz')
+            SecureRandom.base64(length).tr('+/=lIO0', 'pqrsxyz')
           end
 
 
           #========== TTL =================================
+
+          # This method determines the configured length for this
+          # token's type.
+          #
+          def length
+            config = Pillowfort.config
+
+            case self.type
+            when 'activation'     then config.activation_token_length
+            when 'password_reset' then config.password_reset_token_length
+            else                       config.session_token_length
+            end
+          end
 
           # This method determines the configured ttl for this
           # token's type.

@@ -12,6 +12,38 @@ module Pillowfort
 
 
           #------------------------------------------------
+          # Class Methods
+          #------------------------------------------------
+
+          class_methods do
+
+            # This method locates the user record and returns
+            # it if the supplied token matches and is
+            # resettable.
+            #
+            def find_by_password_reset_token(email, token)
+              email = email.to_s.downcase.strip
+              token = token.to_s.strip
+
+              if resource = self.where(email: email).first
+                if resource.password_resettable?
+                  if resource.password_reset_token.secure_compare(token)
+                    yield resource
+                  else
+                    raise Pillowfort::NotAuthenticatedError       # token invalid
+                  end
+                else
+                  raise Pillowfort::NotAuthenticatedError         # not resettable
+                end
+              else
+                raise Pillowfort::NotAuthenticatedError           # no resource
+              end
+            end
+
+          end
+
+
+          #------------------------------------------------
           # Public Methods
           #------------------------------------------------
 

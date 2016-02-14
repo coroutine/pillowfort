@@ -76,8 +76,7 @@ module Pillowfort
                           session_token.reset!
                           raise Pillowfort::NotAuthenticatedError     # token expired
                         else
-                          klass = Pillowfort.config.token_class.to_s.classify.constantize
-                          if klass.secure_compare(session_token.token, token)
+                          if session_token.secure_compare(token)
                             session_token.refresh!
                             yield resource                            # success!
                           else

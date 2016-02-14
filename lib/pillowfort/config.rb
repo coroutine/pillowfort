@@ -20,11 +20,24 @@ module Pillowfort
   class Configuration
     include ActiveSupport::Configurable
 
-    #========== RESOURCE ==================================
+    #========== CLASSES ===================================
 
     # resource_class: <default> :user
     config_accessor :resource_class do
       :user
+    end
+
+    # token_class: <default> :pillowfort_token
+    config_accessor :token_class do
+      :pillowfort_token
+    end
+
+
+    #========== LENGTHS ===================================
+
+    # activation_token_length: <default> 30
+    config_accessor :activation_token_length do
+      30
     end
 
     # password_min_length: <default> 8
@@ -32,13 +45,18 @@ module Pillowfort
       8
     end
 
-
-    #========== TOKENS ====================================
-
-    # token_class: <default> :pillowfort_token
-    config_accessor :token_class do
-      :pillowfort_token
+    # password_reset_token_length: <default> 30
+    config_accessor :password_reset_token_length do
+      30
     end
+
+    # session_token_length: <default> 30
+    config_accessor :session_token_length do
+      30
+    end
+
+
+    #========== TTLS ======================================
 
     # activation_token_ttl: <default> 7.days
     config_accessor :activation_token_ttl do
