@@ -46,7 +46,12 @@ module Pillowfort
 
           class_methods do
 
-
+            # This method provides an application-wide utility
+            # for generating friendly tokens.
+            #
+            def friendly_token(length=30)
+              SecureRandom.base64(length).tr('+/=lIO0', 'pqrsxyz')
+            end
 
           end
 
@@ -195,7 +200,7 @@ module Pillowfort
           # This was lifted verbatim from Devise.
           #
           def friendly_token
-            SecureRandom.base64(length).tr('+/=lIO0', 'pqrsxyz')
+            self.class.friendly_token(length)
           end
 
 

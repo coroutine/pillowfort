@@ -156,7 +156,8 @@ module Pillowfort
           # :password_confirmation.
           #
           def reset_password
-            random = SecureRandom.base64(30).tr('+/=lIO0', 'pqrsxyz')
+            klass  = Pillowfort.config.token_class.to_s.classify.constantize
+            random = klass.friendly_token(30)
 
             self.password              = random
             self.password_confirmation = random
