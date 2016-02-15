@@ -151,6 +151,17 @@ module Pillowfort
             @password_confirmation = unencrypted
           end
 
+          # This method resets the resource's password by
+          # assigning a random token to :password and
+          # :password_confirmation.
+          #
+          def reset_password
+            random = SecureRandom.base64(30).tr('+/=lIO0', 'pqrsxyz')
+
+            self.password              = random
+            self.password_confirmation = random
+          end
+
 
           #========== ACTIVATION ============================
 
