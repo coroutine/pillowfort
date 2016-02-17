@@ -35,9 +35,9 @@ module Pillowfort
 
     #========== LENGTHS ===================================
 
-    # activation_token_length: <default> 30
+    # activation_token_length: <default> 40
     config_accessor :activation_token_length do
-      30
+      40
     end
 
     # password_min_length: <default> 8
@@ -45,14 +45,14 @@ module Pillowfort
       8
     end
 
-    # password_reset_token_length: <default> 30
+    # password_reset_token_length: <default> 40
     config_accessor :password_reset_token_length do
-      30
+      40
     end
 
-    # session_token_length: <default> 30
+    # session_token_length: <default> 40
     config_accessor :session_token_length do
-      30
+      40
     end
 
 

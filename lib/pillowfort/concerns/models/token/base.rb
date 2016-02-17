@@ -18,7 +18,7 @@ module Pillowfort
           included do
 
             # constants
-            TYPES = %w{ activation password_reset session }
+            TOKEN_TYPES = %w{ activation password_reset session }
 
             # callbacks
             before_validation :normalize_type
@@ -33,7 +33,7 @@ module Pillowfort
 
             # validations
             validates :resource, presence: true
-            validates :type,     presence: true, inclusion: { in: TYPES }
+            validates :type,     presence: true, inclusion: { in: TOKEN_TYPES }
             validates :token,    presence: true, uniqueness: { scope: [:type] }
             validates :realm,    presence: true, uniqueness: { scope: [:resource_id, :type] }
 
@@ -49,8 +49,8 @@ module Pillowfort
             # This method provides an application-wide utility
             # for generating friendly tokens.
             #
-            def friendly_token(length=30)
-              SecureRandom.base64(length).tr('+/=lIO0', 'pqrsxyz')
+            def friendly_token(length=40)
+              SecureRandom.base64(length).tr('+/=lIO0', 'pqrsxyz').first(length)
             end
 
           end
