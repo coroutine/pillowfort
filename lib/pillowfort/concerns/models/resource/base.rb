@@ -133,7 +133,7 @@ module Pillowfort
           # For now, we just uses default costs. ~200ms, 1MB
           #
           def password=(unencrypted)
-            pword = unencrypted.strip
+            pword = unencrypted.to_s.strip
 
             if pword.blank?
               self.password_digest = nil
@@ -148,7 +148,7 @@ module Pillowfort
           # facilitate validations.
           #
           def password_confirmation=(unencrypted)
-            @password_confirmation = unencrypted
+            @password_confirmation = unencrypted.to_s.strip
           end
 
           # This method resets the resource's password by
