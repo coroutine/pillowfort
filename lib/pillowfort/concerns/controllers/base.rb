@@ -16,8 +16,8 @@ module Pillowfort
         included do
 
           # callbacks
-          before_filter :remove_response_headers!
-          before_filter :authenticate_from_resource_token!
+          before_action :remove_response_headers!
+          before_action :authenticate_from_resource_token!
 
           # mixins
           include ActionController::HttpAuthentication::Basic::ControllerMethods
