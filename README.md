@@ -23,7 +23,7 @@ On all subsequent requests, the client application provides the email and secret
 
 If your API has more than one client application, each can specify a custom `x-realm` header to instruct Pillowfort to create separate sessions. This will allow a user to be logged into more than one client application simultaneously.
 
-If you don't like that outcome, use the same realm value, and Pillowfort will log users out of one application when they log into the other.
+If you don't like that outcome, you can use the same realm value everywhere and Pillowfort will log users out of one application when they log into the other.
 
 As with all things Pillowfort, it's up to you.
 
@@ -353,7 +353,7 @@ end
 
 ### Activations
 
-In this example, the endpoint supports three session-related actions.
+In this example, the endpoint supports two actions for ensuring actual people are using your API.
 
 - `show`: Allows the client to verify the activation token before bothering to present a password change form.
 - `create`: Processes the password change request and creates a new session (i.e., signs in).
@@ -486,7 +486,7 @@ end
 
 ### Password Resets
 
-In this example, the endpoint supports three session-related actions.
+In this example, the endpoint supports two actions for allowing users to regain control of their accounts.
 
 - `show`: Allows the client to verify the password reset token before bothering to present a password change form.
 - `create`: Processes the password change request and creates a new session (i.e., signs in).
