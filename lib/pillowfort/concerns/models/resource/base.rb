@@ -28,13 +28,13 @@ module Pillowfort
             attr_reader :password_confirmation
 
             # associations
-            has_one  :activation_token,      -> { where(type: 'activation', realm: 'application') },
+            has_one  :activation_token,     -> { where(type: 'activation', realm: 'application') },
                                               class_name: Pillowfort.config.token_class.to_s.classify,
                                               foreign_key: :resource_id
-            has_one  :password_reset_token,  -> { where(type: 'password_reset', realm: 'application') },
+            has_one  :password_reset_token, -> { where(type: 'password_reset', realm: 'application') },
                                               class_name: Pillowfort.config.token_class.to_s.classify,
                                               foreign_key: :resource_id
-            has_many :session_tokens,        -> { where(type: 'session') },
+            has_many :session_tokens,       -> { where(type: 'session') },
                                               class_name: Pillowfort.config.token_class.to_s.classify,
                                               foreign_key: :resource_id
 
@@ -59,12 +59,12 @@ module Pillowfort
             # well, we reset the session token with the realm; otherwise
             # we raise the appropriate error.
             #
-            def authenticate_securely(email, token, realm='application')
-              email = email.to_s.downcase.strip
-              token = token.to_s.strip
-              realm = realm.to_s.downcase.strip
+            def authenticate_securely(email, secret, realm='application')
+              email  = email.to_s.downcase.strip
+              secret = secret.to_s.strip
+              realm  = realm.to_s.downcase.strip
 
-              if email.blank? || token.blank?
+              if email.blank? || secret.blank?
                 raise Pillowfort::NotAuthenticatedError               # no anything
               else
                 transaction do
@@ -76,7 +76,7 @@ module Pillowfort
                           session_token.reset!
                           raise Pillowfort::NotAuthenticatedError     # token expired
                         else
-                          if session_token.secure_compare(token)
+                          if session_token.secure_compare(secret)
                             session_token.refresh!
                             yield resource                            # success!
                           else
@@ -157,7 +157,7 @@ module Pillowfort
           #
           def reset_password
             klass  = Pillowfort.config.token_class.to_s.classify.constantize
-            random = klass.friendly_token(30)
+            random = klass.friendly_secret(40)
 
             self.password              = random
             self.password_confirmation = random
@@ -193,7 +193,7 @@ module Pillowfort
           def reset_session!(realm='application')
             token = session_tokens.where(realm: realm).first_or_initialize
             token.reset!
-            token.token
+            token.secret
           end
 
 
@@ -209,7 +209,7 @@ module Pillowfort
           #
           def normalize_email
             if self.email.present?
-              self.email = self.email.downcase.strip
+              self.email = self.email.to_s.downcase.strip
             end
           end
 

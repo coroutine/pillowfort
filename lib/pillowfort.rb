@@ -35,7 +35,7 @@ module Pillowfort
 
   # helpers
   module Helpers
-    autoload :ErrorHelper,        'pillowfort/helpers/error_helper'
+    autoload :DeprecationHelper,  'pillowfort/helpers/deprecation_helper'
   end
 
 end

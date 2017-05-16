@@ -2,7 +2,7 @@
 # name for authenticable model. Modify as needed before running
 # `rake db:migrate`.
 #
-class CreatePillowfortResources < ActiveRecord::Migration
+class CreatePillowfortResources < ActiveRecord::Migration[5.1]
   def change
     create_table :users do |t|
       t.string :email,            null: false

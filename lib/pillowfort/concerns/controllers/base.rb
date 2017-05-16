@@ -17,7 +17,7 @@ module Pillowfort
 
           # callbacks
           before_action :remove_response_headers!
-          before_action :authenticate_from_resource_token!
+          before_action :authenticate_from_resource_secret!
 
           # mixins
           include ActionController::HttpAuthentication::Basic::ControllerMethods
@@ -42,7 +42,7 @@ module Pillowfort
 
         #========== AUTHENTICATION ========================
 
-        # This method reads the email, token, and realm from
+        # This method reads the email, secret, and realm from
         # the request headers, determines the authenticable class,
         # and defers lookup to the authenticable class itself.
         #
@@ -52,14 +52,22 @@ module Pillowfort
         # header is provided, Pillowfort will use the default Rails
         # realm of `Application`.
         #
-        def authenticate_from_resource_token!
+        def authenticate_from_resource_secret!
           klass = Pillowfort.config.resource_class.to_s.classify.constantize
 
-          authenticate_with_http_basic do |email, token|
-            klass.authenticate_securely(email, token, pillowfort_realm) do |resource|
+          authenticate_with_http_basic do |email, secret|
+            klass.authenticate_securely(email, secret, pillowfort_realm) do |resource|
               @pillowfort_resource = resource
             end
           end
+        end
+
+        # DEPRECATED: This method should be removed in the next
+        # major release of the library.
+        #
+        def authenticate_from_resource_token!
+          Pillowfort::Helpers::DeprecationHelper.warn(self, :authenticate_from_resource_token!, :authenticate_from_resource_secret!)
+          authenticate_from_resource_secret!
         end
 
 

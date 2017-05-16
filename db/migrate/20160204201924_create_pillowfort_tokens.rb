@@ -2,12 +2,12 @@
 # implementation of the token model. Modify as needed before running
 # `rake db:migrate`.
 #
-class CreatePillowfortTokens < ActiveRecord::Migration
+class CreatePillowfortTokens < ActiveRecord::Migration[5.1]
   def change
     create_table :pillowfort_tokens do |t|
       t.integer     :resource_id,     null: false
       t.string      :type,            null: false,  default: 'session'
-      t.string      :token,           null: false
+      t.string      :secret,          null: false
       t.string      :realm,           null: false,  default: 'application'
       t.datetime    :created_at,      null: false
       t.datetime    :expires_at,      null: false
@@ -20,8 +20,8 @@ class CreatePillowfortTokens < ActiveRecord::Migration
                 name: :udx_pillowfort_tokens_on_rid_type_and_realm
 
     add_index :pillowfort_tokens,
-                [:type, :token],
+                [:type, :secret],
                 unique: true,
-                name: :udx_pillowfort_tokens_on_type_and_token
+                name: :udx_pillowfort_tokens_on_type_and_secret
   end
 end

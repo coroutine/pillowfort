@@ -6,7 +6,7 @@ module Pillowfort
         # This module is designed to be included in the model you configure
         # as the `token_class`.  It handles establishing the appropriate
         # validations and provides helper methods for creating and comparing
-        # tokens.
+        # secrets.
         #
         module Base
           extend ActiveSupport::Concern
@@ -18,15 +18,15 @@ module Pillowfort
           included do
 
             # constants
-            TOKEN_TYPES = %w{ activation password_reset session }
+            TOKEN_TYPES ||= %w{ activation password_reset session }
 
             # callbacks
             before_validation :normalize_type
             before_validation :normalize_realm
-            before_validation :reset_token,  on: :create
+            before_validation :reset_secret, on: :create
 
             # turn off fucking sti
-            self.inheritance_column = :_type_disabled
+            self.inheritance_column = :_sti_disabled
 
             # associations
             belongs_to :resource, class_name:  Pillowfort.config.resource_class.to_s.classify
@@ -34,7 +34,7 @@ module Pillowfort
             # validations
             validates :resource, presence: true
             validates :type,     presence: true, inclusion: { in: TOKEN_TYPES }
-            validates :token,    presence: true, uniqueness: { scope: [:type] }
+            validates :secret,   presence: true, uniqueness: { scope: [:type] }
             validates :realm,    presence: true, uniqueness: { scope: [:resource_id, :type] }
 
           end
@@ -47,10 +47,18 @@ module Pillowfort
           class_methods do
 
             # This method provides an application-wide utility
-            # for generating friendly tokens.
+            # for generating friendly secrets.
+            #
+            def friendly_secret(length=40)
+              SecureRandom.base64(length).tr('+/=lIO0', 'pqrsxyz').first(length)
+            end
+
+            # DEPRECATED: This method should be removed in the next
+            # major release of the library.
             #
             def friendly_token(length=40)
-              SecureRandom.base64(length).tr('+/=lIO0', 'pqrsxyz').first(length)
+              Pillowfort::Helpers::DeprecationHelper.warn(self.name, :friendly_token, :friendly_secret)
+              friendly_secret(length)
             end
 
           end
@@ -60,16 +68,35 @@ module Pillowfort
           # Public Methods
           #------------------------------------------------
 
+          #========== ATTRIBUTES ==========================
+
+          # DEPRECATED: This method should be removed in the next
+          # major release of the library.
+          #
+          def token=(value)
+            Pillowfort::Helpers::DeprecationHelper.warn(self.class.name, :token=, :secret=)
+            send(:secret=, value)
+          end
+
+          # DEPRECATED: This method should be removed in the next
+          # major release of the library.
+          #
+          def token
+            Pillowfort::Helpers::DeprecationHelper.warn(self.class.name, :token, :secret)
+            send(:secret)
+          end
+
+
           #========== COMPARISONS =========================
 
           # This method performs a constant-time comparison
-          # of pillowfort tokens in an effort to confound
+          # of pillowfort secrets in an effort to confound
           # timing attacks.
           #
           # This was lifted verbatim from Devise.
           #
           def secure_compare(value)
-            a = self.token
+            a = self.secret
             b = value
 
             return false if a.blank? || b.blank? || a.bytesize != b.bytesize
@@ -131,7 +158,7 @@ module Pillowfort
           # associated resource to reset the token completely.
           #
           def reset!
-            reset_token
+            reset_secret
             refresh_expiry
             reset_confirmation
             save!
@@ -162,10 +189,10 @@ module Pillowfort
           # This method will create new tokens in a loop until
           # one is generated that is unique for the token's type.
           #
-          def reset_token
+          def reset_secret
             loop do
-              self.token = friendly_token
-              break self.token unless self.class.where(type: self.type, token: self.token).first
+              self.secret = friendly_secret
+              break self.secret unless self.class.where(type: self.type, secret: self.secret).first
             end
           end
 
@@ -193,21 +220,21 @@ module Pillowfort
 
           #========== TOKEN ===============================
 
-          # This method produces a random, base64 token and
+          # This method produces a random, base64 secret and
           # replaces any potentially problematic characters
           # with nice characters.
           #
           # This was lifted verbatim from Devise.
           #
-          def friendly_token
-            self.class.friendly_token(length)
+          def friendly_secret
+            self.class.friendly_secret(length)
           end
 
 
           #========== TTL =================================
 
-          # This method determines the configured length for this
-          # token's type.
+          # This method determines the configured secret length
+          # for this token's type.
           #
           def length
             config = Pillowfort.config

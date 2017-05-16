@@ -18,16 +18,16 @@ module Pillowfort
           class_methods do
 
             # This method locates the user record and returns
-            # it if the supplied token matches and is
+            # it if the supplied secret matches and is
             # activatable.
             #
-            def find_by_activation_token(email, token)
-              email = email.to_s.downcase.strip
-              token = token.to_s.strip
+            def find_by_activation_secret(email, secret, &block)
+              email  = email.to_s.downcase.strip
+              secret = secret.to_s.strip
 
               if resource = self.where(email: email).first
                 if resource.activatable?
-                  if resource.activation_token.secure_compare(token)
+                  if resource.activation_token.secure_compare(secret)
                     yield resource
                   else
                     raise Pillowfort::NotAuthenticatedError       # token invalid
@@ -38,6 +38,14 @@ module Pillowfort
               else
                 raise Pillowfort::NotAuthenticatedError           # no resource
               end
+            end
+
+            # DEPRECATED: This method should be removed in the next
+            # major release of the library.
+            #
+            def find_by_activation_token(email, secret, &block)
+              Pillowfort::Helpers::DeprecationHelper.warn(self.name, :find_by_activation_token, :find_by_activation_secret)
+              find_by_activation_secret(email, secret, &block)
             end
 
           end
