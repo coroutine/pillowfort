@@ -60,6 +60,9 @@ module Pillowfort
               @pillowfort_resource = resource
             end
           end
+          unless @pillowfort_resource
+            raise Pillowfort::NotAuthenticatedError
+          end
         end
 
         # DEPRECATED: This method should be removed in the next
