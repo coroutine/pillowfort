@@ -55,11 +55,13 @@ module Pillowfort
         def authenticate_from_resource_token!
           klass = Pillowfort.config.resource_class.to_s.classify.constantize
 
-          authenticate_with_http_basic do |email, token|
+          did_authenticate = authenticate_with_http_basic do |email, token|
             klass.authenticate_securely(email, token, pillowfort_realm) do |resource|
               @pillowfort_resource = resource
             end
           end
+
+          raise Pillowfort::NotAuthenticatedError unless did_authenticate
         end
 
 
